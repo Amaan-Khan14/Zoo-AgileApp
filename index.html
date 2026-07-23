@@ -409,7 +409,7 @@ label.f{display:block;font:600 12px 'IBM Plex Mono';text-transform:uppercase;let
   <h2 class="big">How the sprint gets judged</h2>
   <div class="grid g2">
     <div class="card">
-      <h3>Sprint review scorecard (5 min)</h3>
+      <h3>Sprint review scorecard (2 min)</h3>
       <p style="margin:0 0 8px">The PO walks each Done card and scores it live.</p>
       <ul class="tight">
         <li><strong>Accepted</strong> — every criterion is visible on the map. The PO points at each one. Full points.</li>
@@ -430,13 +430,13 @@ label.f{display:block;font:600 12px 'IBM Plex Mono';text-transform:uppercase;let
 
   <div class="grid g2" style="margin-top:16px">
     <div class="card">
-      <h3>Retrospective (5 min) — start, stop, continue</h3>
+      <h3>Retrospective (2 min) — start, stop, continue</h3>
       <label class="f">Start doing</label><textarea data-note="r-start"></textarea>
       <label class="f">Stop doing</label><textarea data-note="r-stop"></textarea>
       <label class="f">Continue doing</label><textarea data-note="r-cont"></textarea>
     </div>
     <div class="card">
-      <h3>Improvement commitment (10 min)</h3>
+      <h3>Improvement commitment (2 min)</h3>
       <p style="margin:0 0 8px">Pick exactly <strong>two</strong> changes to carry into Sprint 2. Two, not five — a team that commits to everything commits to nothing.</p>
       <label class="f">Change 1 — what, and who owns it</label><textarea data-note="imp1"></textarea>
       <label class="f">Change 2 — what, and who owns it</label><textarea data-note="imp2"></textarea>
@@ -797,10 +797,10 @@ document.getElementById('roles').innerHTML=ROLES.map(r=>`
 /* ---------- agenda ---------- */
 const PHASES=[
  {s:1,n:'Sprint 1 · Sprint Planning',m:5,h:'PO explains priorities. Team pulls stories into the Sprint Backlog and freezes scope.'},
- {s:1,n:'Sprint 1 · Development',m:30,h:'Draw on the shared zoo map. Cards move only by their owner. No scope changes.'},
- {s:1,n:'Sprint 1 · Sprint Review',m:5,h:'PO points at the map for every acceptance criterion. Accepted, partial, or rejected.'},
- {s:1,n:'Sprint 1 · Retrospective',m:5,h:'Start, stop, continue. Every person contributes at least one item.'},
- {s:1,n:'Improvement planning',m:10,h:'Pick exactly two changes for Sprint 2, each with a named owner. Recalculate velocity.'},
+ {s:1,n:'Sprint 1 · Development',m:10,h:'Draw on the shared zoo map. Cards move only by their owner. No scope changes.'},
+ {s:1,n:'Sprint 1 · Sprint Review',m:2,h:'PO points at the map for every acceptance criterion. Accepted, partial, or rejected.'},
+ {s:1,n:'Sprint 1 · Retrospective',m:2,h:'Start, stop, continue. Every person contributes at least one item.'},
+ {s:1,n:'Improvement planning',m:2,h:'Pick exactly two changes for Sprint 2, each with a named owner. Recalculate velocity.'},
  {s:2,n:'Sprint 2 · Sprint Planning',m:5,h:'Rotate roles. Commit using Sprint 1 actual velocity, not optimism.'},
  {s:2,n:'Sprint 2 · Development',m:30,h:'Draw. Apply the two improvements visibly.'},
  {s:2,n:'Sprint 2 · Sprint Review',m:5,h:'Score again. Check whether all 8 Critical stories are accepted — the zoo opens or it does not.'},
