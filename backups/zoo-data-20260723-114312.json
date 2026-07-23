@@ -37,10 +37,10 @@
    "verdict": ""
   },
   "US-07": {
-   "col": "done",
+   "col": "prog",
    "owner": "",
    "sprint": "1",
-   "verdict": "Accepted"
+   "verdict": ""
   },
   "US-08": {
    "col": "backlog",
@@ -55,10 +55,10 @@
    "verdict": ""
   },
   "US-10": {
-   "col": "done",
+   "col": "prog",
    "owner": "",
    "sprint": "1",
-   "verdict": "Accepted"
+   "verdict": ""
   },
   "US-11": {
    "col": "backlog",
@@ -312,6 +312,6 @@
   "imp1": "",
   "imp2": ""
  },
- "updated": "2026-07-23T11:43:14",
+ "updated": "2026-07-23T11:43:10",
  "savedBy": ""
 }
