@@ -1,0 +1,317 @@
+{
+ "kanban": {
+  "US-01": {
+   "col": "sprint",
+   "owner": "",
+   "sprint": "1",
+   "verdict": ""
+  },
+  "US-02": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-03": {
+   "col": "sprint",
+   "owner": "",
+   "sprint": "1",
+   "verdict": ""
+  },
+  "US-04": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-05": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-06": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-07": {
+   "col": "sprint",
+   "owner": "",
+   "sprint": "1",
+   "verdict": ""
+  },
+  "US-08": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-09": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-10": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-11": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-12": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-13": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-14": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-15": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-16": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-17": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-18": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-19": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-20": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-21": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-22": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-23": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-24": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-25": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-26": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-27": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-28": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-29": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-30": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-31": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-32": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-33": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-34": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-35": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-36": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-37": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-38": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-39": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-40": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-41": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-42": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-43": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-44": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-45": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-46": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-47": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-48": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-49": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  },
+  "US-50": {
+   "col": "backlog",
+   "owner": "",
+   "sprint": "",
+   "verdict": ""
+  }
+ },
+ "notes": {
+  "v1c": "",
+  "v1a": "",
+  "v2c": "",
+  "v2a": "",
+  "r-start": "",
+  "r-stop": "",
+  "r-cont": "",
+  "imp1": "",
+  "imp2": ""
+ },
+ "updated": "2026-07-23T09:20:32",
+ "savedBy": ""
+}

@@ -1,0 +1,902 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zoo Build — Sprint Simulation Console</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14231c;
+  --paper:#f2efe4;
+  --card:#fbf9f2;
+  --moss:#37613f;
+  --clay:#9c4a2a;
+  --straw:#c9a227;
+  --slate:#3d5a6c;
+  --line:#d8d2bf;
+  --mute:#6f6a58;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;margin:0;letter-spacing:-.02em}
+.mono{font-family:'IBM Plex Mono',monospace}
+a{color:var(--moss)}
+
+/* ---- header ---- */
+header{background:var(--ink);color:var(--paper);padding:22px 24px}
+.hwrap{max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+header h1{font-size:clamp(24px,3.4vw,40px);font-weight:800;line-height:1}
+header h1 em{font-style:normal;color:var(--straw)}
+.sub{color:#b9bfae;font-size:13px;margin-top:6px;max-width:52ch}
+.hmeta{display:flex;gap:10px;flex-wrap:wrap}
+.pill{border:1px solid #445; background:#1d3129;color:#dfe6d5;padding:6px 11px;border-radius:999px;font-size:11.5px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
+
+/* ---- nav ---- */
+nav{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--line)}
+.nwrap{max-width:1280px;margin:0 auto;display:flex;gap:2px;overflow-x:auto;padding:0 16px}
+nav button{border:0;background:none;padding:14px 14px;font:600 13px Inter,sans-serif;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button:hover{color:var(--ink)}
+nav button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--clay)}
+
+main{max-width:1280px;margin:0 auto;padding:26px 20px 90px}
+section[hidden]{display:none}
+.lede{max-width:70ch;color:#40483c;margin:0 0 22px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.eyebrow{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--clay);margin-bottom:8px}
+h2.big{font-size:26px;font-weight:800;margin-bottom:6px}
+h3{font-size:16px;font-weight:700;margin-bottom:8px}
+
+/* ---- timer ---- */
+.timerbar{position:fixed;bottom:0;left:0;right:0;background:var(--ink);color:var(--paper);z-index:50;border-top:3px solid var(--straw)}
+.tinner{max-width:1280px;margin:0 auto;padding:10px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+#clock{font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:600;letter-spacing:-.02em;min-width:130px}
+#clock.warn{color:var(--straw)}
+#clock.over{color:#e2705a}
+#phaseName{font-weight:700;font-size:15px}
+#phaseHint{font-size:12px;color:#b9bfae}
+.tbtn{background:#294034;border:1px solid #3f5a4a;color:#e9ecdf;font:600 12.5px Inter;padding:8px 14px;border-radius:7px;cursor:pointer}
+.tbtn:hover{background:#33513f}
+.tbtn.pri{background:var(--straw);border-color:var(--straw);color:#20180a}
+.tprog{flex:1 1 160px;height:6px;background:#2a3b31;border-radius:99px;overflow:hidden;min-width:120px}
+.tprog i{display:block;height:100%;background:var(--straw);width:0%}
+
+/* ---- agenda ---- */
+.phase{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);margin-bottom:8px;cursor:pointer}
+.phase:hover{border-color:var(--moss)}
+.phase.active{border-color:var(--clay);box-shadow:inset 3px 0 0 var(--clay)}
+.dur{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:20px;min-width:62px;color:var(--moss)}
+.phase small{color:var(--mute);display:block;margin-top:3px}
+
+/* ---- table ---- */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+select,input[type=search]{font:500 13px Inter;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{background:#e9e5d6;text-align:left;padding:10px;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#4b4staff}
+th{color:#4b4a3d}
+td{padding:11px 10px;border-top:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#f5f2e6}
+.idc{font-family:'IBM Plex Mono',monospace;font-weight:600;white-space:nowrap}
+.ep{display:inline-block;padding:3px 7px;border-radius:5px;color:#fff;font:600 10.5px 'IBM Plex Mono',monospace;white-space:nowrap}
+.pr{font:600 10.5px 'IBM Plex Mono',monospace;padding:3px 7px;border-radius:5px;border:1px solid}
+.pr.Critical{background:#fbe6e0;border-color:#c96a4c;color:#8e3618}
+.pr.High{background:#fcefd7;border-color:#c9a227;color:#7a5f0d}
+.pr.Medium{background:#e4eef1;border-color:#7ba3b0;color:#2e5461}
+.pr.Low{background:#eceade;border-color:#bdb69f;color:#5f5a48}
+.ac{margin:6px 0 0;padding-left:16px;color:#4a5247;font-size:12.5px}
+.ac li{margin:2px 0}
+details summary{cursor:pointer;font:600 12px Inter;color:var(--moss);list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary:before{content:"▸ ";}
+details[open] summary:before{content:"▾ ";}
+
+.roleCard{border-left:4px solid var(--moss)}
+.roleCard.po{border-left-color:var(--clay)}
+.roleCard.al{border-left-color:var(--straw)}
+.roleCard.dev{border-left-color:var(--slate)}
+ul.tight{margin:6px 0 0;padding-left:18px}
+ul.tight li{margin:3px 0}
+
+.kpi{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;color:var(--moss);line-height:1}
+.kl{font-size:11.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);margin-top:4px}
+
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 40px;border-left:2px dashed var(--line);margin-left:12px}
+.steps li:last-child{border-left-color:transparent}
+.steps li:before{content:counter(s);position:absolute;left:-13px;top:-2px;width:26px;height:26px;border-radius:50%;background:var(--moss);color:#fff;font:600 12px 'IBM Plex Mono';display:grid;place-items:center}
+
+.note{background:#fdf6de;border:1px solid var(--straw);border-radius:8px;padding:12px 14px;font-size:13.5px}
+.warnbox{background:#fbe9e2;border:1px solid #c96a4c;border-radius:8px;padding:12px 14px;font-size:13.5px}
+textarea{width:100%;min-height:80px;font:400 13px Inter;padding:10px;border:1px solid var(--line);border-radius:7px;background:#fff;resize:vertical}
+label.f{display:block;font:600 12px 'IBM Plex Mono';text-transform:uppercase;letter-spacing:.07em;color:var(--mute);margin:12px 0 4px}
+.printbtn{background:var(--moss);color:#fff;border:0;padding:10px 16px;border-radius:7px;font:600 13px Inter;cursor:pointer}
+.ascii{font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.35;white-space:pre;overflow-x:auto;background:#eae6d7;border:1px solid var(--line);border-radius:8px;padding:14px}
+
+
+.acsel{width:100%;max-width:330px;font:600 11.5px 'IBM Plex Mono',monospace;padding:6px 8px;border:1px solid var(--clay);border-radius:6px;background:#fdf6de;color:#7a3d1c;cursor:pointer}
+.aclist{margin:8px 0 0;padding-left:18px;list-style:decimal}
+.aclist li{margin:3px 0;font-size:12.5px;color:#4a5247;padding:1px 4px;border-radius:4px}
+.aclist li.hit{background:var(--straw);color:#20180a;font-weight:600}
+
+/* ---- sync bar ---- */
+.syncbar{position:sticky;top:47px;z-index:39;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  max-width:1280px;margin:0 auto;padding:8px 20px;font-size:12.5px;border-bottom:1px solid var(--line);background:#efece0}
+.syncdot{width:9px;height:9px;border-radius:50%;background:var(--moss);flex:none}
+.syncbadge{font:600 11.5px 'IBM Plex Mono',monospace;padding:3px 8px;border-radius:5px;background:#e4eef1;color:#2e5461}
+.syncbadge.ok{background:#e2f0e0;color:#33612f}
+.syncbadge.busy{background:#fcefd7;color:#7a5f0d}
+.syncbadge.bad{background:#fbe6e0;color:#8e3618}
+.syncfile{font-size:11px;color:var(--mute)}
+#whoAmI{font:500 12px Inter;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;width:130px}
+.tbtn2.sm{padding:5px 10px;font-size:12px}
+/* ---- kanban ---- */
+.board{display:grid;grid-template-columns:repeat(5,minmax(210px,1fr));gap:12px;overflow-x:auto}
+.col{background:#e9e5d6;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:210px;display:flex;flex-direction:column}
+.colhead{display:flex;justify-content:space-between;align-items:baseline;font:700 13px 'Bricolage Grotesque',sans-serif}
+.cnt{font-size:11px;color:var(--mute)}
+.colsub{font-size:10.5px;color:var(--mute);margin:2px 0 8px;line-height:1.3}
+.drop{flex:1;min-height:90px;display:flex;flex-direction:column;gap:8px;border-radius:7px;padding:2px}
+.drop.over{background:#dfe7d3;outline:2px dashed var(--moss)}
+.empty{font-size:11.5px;color:#9a947f;text-align:center;padding:18px 4px;border:1px dashed var(--line);border-radius:7px}
+.kcard{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 9px;cursor:grab;position:relative}
+.kcard.dragging{opacity:.45}
+.krow{display:flex;gap:6px;align-items:center;margin-bottom:4px}
+.ktitle{font:600 13px Inter;line-height:1.3;margin-bottom:5px}
+.kcard details summary{font-size:11px}
+.kcard .ac{font-size:11.5px;margin-top:4px}
+.kmeta{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.kmeta select{font:500 11px Inter;padding:3px 5px;border-radius:5px;border:1px solid var(--line);background:#fff}
+.verdict.Accepted{background:#e2f0e0;border-color:#6a8f4f}
+.verdict.Partial{background:#fcefd7;border-color:#c9a227}
+.verdict.Rejected{background:#fbe6e0;border-color:#c96a4c}
+.kmove{position:absolute;top:6px;right:6px;display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.kcard:hover .kmove,.kcard:focus-within .kmove{opacity:1}
+.kmove button{border:1px solid var(--line);background:#fff;border-radius:4px;font-size:11px;line-height:1;padding:3px 5px;cursor:pointer}
+.tbtn2{background:var(--card);border:1px solid var(--line);color:var(--ink);font:600 13px Inter;padding:8px 12px;border-radius:7px;cursor:pointer}
+@media (max-width:900px){.board{grid-template-columns:repeat(5,240px)}.kmove{opacity:1}}
+@media print{nav,.timerbar,header .hmeta,.kmove,.filters button,.syncbar{display:none}.board{grid-template-columns:repeat(5,1fr)}section[hidden]{display:block!important}}
+@media (max-width:640px){#clock{font-size:26px;min-width:100px}}
+</style>
+<body>
+<header>
+ <div class="hwrap">
+  <div>
+    <h1>Build a <em>Zoo</em> in Two Sprints</h1>
+    <div class="sub">A 90-minute Agile simulation. Seven epics, fifty user stories, one shared whiteboard, and a team that has to decide what actually ships.</div>
+  </div>
+  <div class="hmeta">
+    <span class="pill">7 Epics</span><span class="pill">50 Stories</span><span class="pill">5 People</span><span class="pill">2 × 45 min</span>
+  </div>
+ </div>
+</header>
+
+<nav><div class="nwrap" id="nav"></div></nav>
+
+<div id="syncBar" class="syncbar" hidden>
+  <span class="syncdot"></span>
+  <span id="syncState" class="syncbadge">Connecting…</span>
+  <span class="syncfile mono">zoo-data.json</span>
+  <span style="flex:1"></span>
+  <input id="whoAmI" placeholder="your name" data-nosync>
+  <button class="tbtn2 sm" onclick="exportState()">Download JSON</button>
+  <label class="tbtn2 sm" style="cursor:pointer">Load JSON<input type="file" accept=".json" hidden onchange="if(this.files[0])importState(this.files[0])"></label>
+</div>
+<main>
+<section id="s-brief">
+  <div class="eyebrow">The brief</div>
+  <h2 class="big">Your team has been hired to build a zoo</h2>
+  <p class="lede">The city has funded a new zoo and handed you an empty plot. Your team draws it into existence on a shared whiteboard — boundary wall, animal zones, toy train, aqua park, toilets, safety boxes, medical centre, the lot. The backlog holds 50 things to draw. You cannot draw all of them in 90 minutes. Two sprints to build a zoo that can actually open its gates.</p>
+
+  <div class="grid g3" style="margin-bottom:18px">
+    <div class="card"><div class="kpi">50</div><div class="kl">User stories</div></div>
+    <div class="card"><div class="kpi">246</div><div class="kl">Total story points</div></div>
+    <div class="card"><div class="kpi">2</div><div class="kl">Sprints of 30 min</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>What "done" means here</h3>
+      <p style="margin:0 0 8px"><strong>Everything is drawn, not written.</strong> A story is done when the thing it describes is actually drawn on the zoo map — the shape, the label, and every detail the acceptance criteria ask for. A sticky note saying "lion enclosure built" is not done. A drawn enclosure with a moat, two lions, viewing glass and a keeper door is done.</p>
+      <p style="margin:0 0 8px">Rough shapes and stick figures are fine. Neatness earns nothing. Missing details cost points.</p>
+      <div class="note"><strong>The trap:</strong> teams draw the shark tunnel and the toy train first because they are fun. Then the review asks where the boundary wall, the toilets and the medical centre are. A zoo with a dolphin show and no perimeter is not a zoo.</div>
+    </div>
+    <div class="card">
+      <h3>Constraints</h3>
+      <ul class="tight">
+        <li>Only the Product Owner may change priority or scope.</li>
+        <li>Sprint scope is frozen once planning ends. New ideas go to the backlog.</li>
+        <li>Every developer must own at least one story per sprint.</li>
+        <li>Work happens only on the shared whiteboard — if it is not drawn, it does not exist.</li>
+        <li>Draw on one single zoo map. Do not start a second map halfway through.</li>
+        <li>Velocity from Sprint 1 must be used to plan Sprint 2.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>Shared whiteboard</h3>
+    <p style="margin:0 0 10px">Every team works in one Web Whiteboard board, shared by link with all 5 members plus the facilitator.</p>
+    <a href="https://webwhiteboard.com/" target="_blank" rel="noopener"><strong>webwhiteboard.com</strong></a>
+    <div class="ascii" style="margin-top:12px">┌──────────────┬──────────────┬──────────────┬──────────────┬──────────────┐
+│  PRODUCT     │  SPRINT      │  IN          │  REVIEW      │    DONE      │
+│  BACKLOG     │  BACKLOG     │  PROGRESS    │              │              │
+│              │              │              │              │              │
+│  all 50      │  pulled in   │  owner name  │  PO checks   │  all AC met  │
+│  stories     │  at planning │  on every    │  every AC    │  PO signed   │
+│  by priority │  FROZEN      │  card        │              │              │
+└──────────────┴──────────────┴──────────────┴──────────────┴──────────────┘
+   THE ZOO MAP (right side of board) — one single map, everything drawn here
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │ ······················ boundary wall ································ │
+   │ :  [parking]--MAIN GATE--[tickets]                                  : │
+   │ :        \                                                          : │
+   │ :   [lion] [tiger] [elephant]   ~~[aqua park]~~   [reptile park]     : │
+   │ :        \____ main path ____/____ toy train ____/                  : │
+   │ :   [WC] [water pt] [safety box] [restaurant] [medical +]           : │
+   │ :   ---- service road ----  [vet hospital] [quarantine] [kitchen]   : │
+   │ ······················································· SERVICE GATE : │
+   └───────────────────────────────────────────────────────────────────────┘
+   Legend box: draw one symbol each for WC, water, safety box, medical,
+   train station, sign, camera, bench, bin. Use the same symbol every time.
+   PARKING LOT (bottom) — new ideas, blockers, questions for the PO</div>
+  </div>
+</section>
+
+<section id="s-roles" hidden>
+  <div class="eyebrow">Team of five</div>
+  <h2 class="big">Who does what</h2>
+  <p class="lede">Roles are assigned before Sprint 1 and swapped at the start of Sprint 2 so more people feel the pressure of the PO and facilitator seats.</p>
+  <div class="grid g2" id="roles"></div>
+</section>
+
+<section id="s-agenda" hidden>
+  <div class="eyebrow">Run of show</div>
+  <h2 class="big">90 minutes, two sprints</h2>
+  <p class="lede">Click any phase to load it into the timer at the bottom of the screen. The timer is the single source of truth — when it hits zero, the phase ends whether the work is finished or not.</p>
+  <div id="agenda"></div>
+</section>
+
+<section id="s-backlog" hidden>
+  <div class="eyebrow">Product backlog</div>
+  <h2 class="big">50 user stories</h2>
+  <p class="lede">Filter and sort, then paste the ones you need onto the board. Every story carries its acceptance criteria in the column beside it — pick one from the dropdown to highlight it. A story is only Done when all of them are drawn.</p>
+  <div class="filters">
+    <select id="fEpic"></select>
+    <select id="fPri"><option value="">All priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+    <select id="fSort"><option value="id">Sort: ID</option><option value="pri">Sort: Priority</option><option value="pts">Sort: Points</option></select>
+    <input type="search" id="fQ" placeholder="Search stories…">
+    <span class="mono" id="count" style="color:var(--mute);font-size:12.5px"></span>
+    <button class="printbtn" onclick="window.print()">Print backlog</button>
+  </div>
+  <table><thead><tr><th>ID</th><th>Epic</th><th>User story</th><th style="min-width:280px">Acceptance criteria</th><th>Pri</th><th>Pts</th></tr></thead><tbody id="rows"></tbody></table>
+</section>
+
+
+
+
+<section id="s-setup" hidden>
+  <div class="eyebrow">Setup</div>
+  <h2 class="big">Run it with a shared data file</h2>
+  <p class="lede">A browser cannot write to a folder on its own — that is blocked for security. So this folder ships with a tiny Python server. Start it once and the page genuinely reads and writes <strong class="mono">zoo-data.json</strong> in this same folder, every two seconds, with no clicking.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Start the server</h3>
+      <ol class="steps">
+        <li>Keep <span class="mono">index.html</span> and <span class="mono">server.py</span> in the same folder.</li>
+        <li>Open a terminal in that folder.</li>
+        <li>Run <span class="mono" style="background:#e9e5d6;padding:2px 6px;border-radius:4px">python server.py</span><br>
+            <small style="color:var(--mute)">On Mac/Linux use <span class="mono">python3 server.py</span></small></li>
+        <li>The browser opens by itself at <span class="mono">http://localhost:8000</span></li>
+        <li>The bar at the top of the page turns green and says <em>Saved</em>. That is the file being written.</li>
+      </ol>
+      <div class="note" style="margin-top:12px">Nothing to install. Python's built-in server is all it uses.</div>
+    </div>
+
+    <div class="card">
+      <h3>Let the team see it live</h3>
+      <p style="margin:0 0 10px">The server prints a second address, something like <span class="mono">http://192.168.1.7:8000</span>. Anyone on the same wifi can open that link on a laptop or phone.</p>
+      <ul class="tight">
+        <li>Everyone sees the same board, the same backlog, the same acceptance criteria.</li>
+        <li>Changes appear on other screens within about 4 seconds.</li>
+        <li>Type your name in the box on the sync bar so saves are attributed.</li>
+      </ul>
+      <div class="warnbox" style="margin-top:12px">Same wifi only. If the team is remote, share the whiteboard link and let one person drive this board.</div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>Where the data lives</h3>
+      <div class="ascii">your-folder/
+  index.html          the app
+  server.py           run this
+  zoo-data.json    &lt;-- THE DATABASE
+  backups/
+    zoo-data-20260722-1431.json
+    zoo-data-20260722-1433.json   (last 20 saves)</div>
+      <p style="margin:12px 0 0;font-size:13.5px"><span class="mono">zoo-data.json</span> is plain text. Open it in Notepad, email it, put it in Drive, commit it to git. Every save also writes a timestamped backup, so a bad move never costs you the session.</p>
+    </div>
+    <div class="card">
+      <h3>If you cannot run Python</h3>
+      <p style="margin:0 0 10px">The page still works fully — it just will not auto-save. Use the two buttons on the sync bar:</p>
+      <ul class="tight">
+        <li><strong>Download JSON</strong> — saves the current board to your Downloads folder.</li>
+        <li><strong>Load JSON</strong> — restores it, on any machine, in any browser.</li>
+      </ul>
+      <p style="margin:10px 0 0;font-size:13.5px">Download once at the end of each sprint and you never lose a review or a retro.</p>
+      <div class="note" style="margin-top:12px"><strong>Between two teams?</strong> Download the JSON, then hit <em>Reset board</em> before the next group starts.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>What gets saved</h3>
+    <ul class="tight">
+      <li>Every card's column, owner, sprint and PO verdict on the Kanban board</li>
+      <li>The velocity worksheet numbers</li>
+      <li>Start / stop / continue from the retrospective</li>
+      <li>Both improvement commitments</li>
+    </ul>
+    <p style="margin:10px 0 0;font-size:13.5px;color:var(--mute)">The timer is deliberately not saved — it should always start fresh.</p>
+  </div>
+</section>
+
+<section id="s-kanban" hidden>
+  <div class="eyebrow">Kanban board</div>
+  <h2 class="big">Track every story</h2>
+  <p class="lede">Drag cards across the columns, or use the ← → buttons. Tag each card with an owner and a sprint. Mirror this on the whiteboard — this is the facilitator's copy so nothing gets lost when the board gets messy.</p>
+  <div class="note" style="margin-bottom:16px"><strong>Rules of the board:</strong> only the card owner moves their own card. Nothing enters Sprint Backlog after planning ends. Nothing reaches Done until the PO has pointed at every acceptance criterion on the map.</div>
+  <div id="kanban"></div>
+  <p style="font-size:12.5px;color:var(--mute);margin-top:14px">The board lives in this browser tab only — it resets if you reload. Print it before you close the session.</p>
+</section>
+
+<section id="s-draw" hidden>
+  <div class="eyebrow">Drawing kit</div>
+  <h2 class="big">Everything is drawn</h2>
+  <p class="lede">This is not a documentation exercise. Every story on the backlog describes a physical thing that has to appear on one shared zoo map. Rough shapes and stick figures are fine — the review only checks whether the details the story asked for are actually there.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>The one rule</h3>
+      <p style="margin:0 0 10px">A box with the word "aviary" written inside it is <strong>not</strong> an aviary.</p>
+      <p style="margin:0 0 10px">An aviary is a shape with a net line over the top, a double door, five birds and three trees inside — because that is what the acceptance criteria asked for.</p>
+      <div class="warnbox">At review the PO points a finger at each criterion on the map. If they have to describe what it would look like instead of pointing at it, the story is rejected.</div>
+    </div>
+    <div class="card">
+      <h3>Draw the legend first</h3>
+      <p style="margin:0 0 8px">Before anything else, agree one symbol for each repeated element and put them in a legend box in the corner. Then use the same symbol everywhere.</p>
+      <div class="ascii">  WC   toilet          ~    water / pool
+  [+]  medical         !    safety box
+  (W)  water point     &lt;o&gt;  CCTV camera
+  =T=  train station   ->   direction sign
+  ###  boundary wall   ---  service road
+  ...  walking path    [B]  bench
+  $    shop / kiosk    ^^^  trees</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>Suggested map layout</h3>
+    <p style="margin:0 0 10px">Give the team this starting shape so they do not spend ten minutes arguing about where the gate goes. They can change it, but they must start somewhere.</p>
+    <div class="ascii">########################### BOUNDARY WALL ############################
+#                                                                    #
+#   ^^^ [lion+moat]   ^^^ [tiger]        [elephant + mud pond] ^^^    #
+#            \             |                   /                     #
+#   [reptile park] ...... MAIN PATH .......... [giraffe/zebra]       #
+#            |             |                   |                     #
+#   ~~[AQUA PARK]~~   =T= train stn      [monkey island]~            #
+#            |             |                   |                     #
+#   $ restaurant  WC  (W)  !  [+] MEDICAL   [amphitheatre]           #
+#            |             |                                         #
+#   -------------- SERVICE ROAD (staff only) ----------------        #
+#   [vet hospital]  [quarantine]  [animal kitchen]  [waste yard]     #
+#                                                     SERVICE GATE ->#
+###################### MAIN GATE + TICKETS ###########################
+                    |
+              [ PARKING ]  (outside the wall)</div>
+  </div>
+
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card"><h3>Split the map</h3><p style="margin:0;font-size:13.5px">Assign each developer a region during planning — animal zones, visitor services, back-of-house. Stops three people drawing over each other.</p></div>
+    <div class="card"><h3>Draw big things first</h3><p style="margin:0;font-size:13.5px">Boundary wall, main path and service road before any enclosure. Teams that draw the shark tunnel first end up with no room for the vet hospital.</p></div>
+    <div class="card"><h3>Name every card owner</h3><p style="margin:0;font-size:13.5px">Write the developer's name on the card <em>and</em> next to the drawn area, so the review knows who demos it.</p></div>
+  </div>
+</section>
+
+<section id="s-scoring" hidden>
+  <div class="eyebrow">Review &amp; scoring</div>
+  <h2 class="big">How the sprint gets judged</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Sprint review scorecard (5 min)</h3>
+      <p style="margin:0 0 8px">The PO walks each Done card and scores it live.</p>
+      <ul class="tight">
+        <li><strong>Accepted</strong> — every criterion is visible on the map. The PO points at each one. Full points.</li>
+        <li><strong>Partial</strong> — the thing is drawn but a detail is missing (moat drawn, keeper door missing). Half points, rolls to next sprint.</li>
+        <li><strong>Rejected</strong> — not drawn, or only labelled as text. Zero points, back to backlog.</li>
+      </ul>
+      <div class="note" style="margin-top:10px"><strong>The PO must physically point at the drawing for each criterion.</strong> If they have to explain what it would look like, it is not accepted.<br><br><strong>Bonus +10 pts:</strong> if all 10 Critical stories are Accepted by the end of Sprint 2, the zoo opens. If not, the zoo fails its licence inspection regardless of total points.</div>
+    </div>
+    <div class="card">
+      <h3>Velocity worksheet</h3>
+      <label class="f">Sprint 1 — committed points</label><input type="search" data-note="v1c" placeholder="e.g. 40">
+      <label class="f">Sprint 1 — accepted points</label><input type="search" data-note="v1a" placeholder="e.g. 26">
+      <label class="f">Sprint 2 — committed (use Sprint 1 actual, not hope)</label><input type="search" data-note="v2c" placeholder="e.g. 28">
+      <label class="f">Sprint 2 — accepted points</label><input type="search" data-note="v2a" placeholder="">
+      <p style="font-size:12.5px;color:var(--mute);margin:12px 0 0">The teaching moment is almost always the gap between committed and accepted in Sprint 1.</p>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>Retrospective (5 min) — start, stop, continue</h3>
+      <label class="f">Start doing</label><textarea data-note="r-start"></textarea>
+      <label class="f">Stop doing</label><textarea data-note="r-stop"></textarea>
+      <label class="f">Continue doing</label><textarea data-note="r-cont"></textarea>
+    </div>
+    <div class="card">
+      <h3>Improvement commitment (10 min)</h3>
+      <p style="margin:0 0 8px">Pick exactly <strong>two</strong> changes to carry into Sprint 2. Two, not five — a team that commits to everything commits to nothing.</p>
+      <label class="f">Change 1 — what, and who owns it</label><textarea data-note="imp1"></textarea>
+      <label class="f">Change 2 — what, and who owns it</label><textarea data-note="imp2"></textarea>
+      <div class="warnbox" style="margin-top:12px">Facilitator: push back on vague commitments like "communicate better". Ask what would be visibly different on the board.</div>
+    </div>
+  </div>
+</section>
+
+<section id="s-facilitator" hidden>
+  <div class="eyebrow">Facilitator notes</div>
+  <h2 class="big">Running the session</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Before the room fills</h3>
+      <ol class="steps">
+        <li>Create one Web Whiteboard board per team and pre-draw the five columns plus the build canvas.</li>
+        <li>Paste the backlog into the Product Backlog column, sorted by priority.</li>
+        <li>Draw an empty rectangle on the right side of the board and label it THE ZOO. That is the map — teams draw inside it.</li>
+        <li>Share the board link with all 5 members with edit rights.</li>
+        <li>Open this page on the projector and keep the timer visible all session.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>What to watch for</h3>
+      <ul class="tight">
+        <li><strong>Over-commitment in Sprint 1.</strong> Let it happen. It is the lesson.</li>
+        <li><strong>The PO who codes.</strong> Redirect them to acceptance and priority.</li>
+        <li><strong>Silent developers.</strong> Enforce one owned story each — and one drawn area each.</li>
+        <li><strong>Teams that write instead of draw.</strong> A box with the word "aviary" in it is not an aviary. Reject it at review once and they will never do it again.</li>
+        <li><strong>Two people drawing over each other.</strong> Assign map regions during planning.</li>
+        <li><strong>Scope creep mid-sprint.</strong> Point at the parking lot.</li>
+        <li><strong>Retro that lists 9 improvements.</strong> Force it down to two.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Debrief questions (if you have spare minutes)</h3>
+    <ul class="tight">
+      <li>What did you commit to in Sprint 1, and what did you actually finish? Why the gap?</li>
+      <li>Who decided what was in scope, and did the process hold under time pressure?</li>
+      <li>Which acceptance criteria were argued about at review? Would a sharper AC have prevented that?</li>
+      <li>Look at the map. Could a real visitor walk from the gate to every animal and back out? Could an ambulance reach every zone?</li>
+      <li>Did the two retro commitments change anything measurable in Sprint 2?</li>
+      <li>If there were a Sprint 3, what would you pull first — and would it be the same answer you gave 90 minutes ago?</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<div class="timerbar">
+ <div class="tinner">
+  <div id="clock">05:00</div>
+  <div style="min-width:170px">
+    <div id="phaseName">Sprint 1 · Planning</div>
+    <div id="phaseHint">PO explains priorities, team pulls stories</div>
+  </div>
+  <button class="tbtn pri" id="btnStart">Start</button>
+  <button class="tbtn" id="btnReset">Reset</button>
+  <button class="tbtn" id="btnNext">Next phase</button>
+  <div class="tprog"><i id="prog"></i></div>
+ </div>
+</div>
+<script>const ZOO={"epics": [{"id": "E1", "name": "Animal Zones", "color": "#6a8f4f"}, {"id": "E2", "name": "Aquatic & Bird World", "color": "#3f7d8c"}, {"id": "E3", "name": "Visitor Movement", "color": "#b4632c"}, {"id": "E4", "name": "Food, Shops & Rest", "color": "#a3562b"}, {"id": "E5", "name": "Safety & Medical", "color": "#7a4a6e"}, {"id": "E6", "name": "Animal Care & Back-of-House", "color": "#4a5a7a"}, {"id": "E7", "name": "Fun, Learning & Events", "color": "#8a7326"}], "stories": [{"id": "US-01", "epic": "E1", "title": "Zoo boundary wall", "asA": "zoo owner", "iWant": "a boundary wall drawn around the whole zoo", "soThat": "no animal escapes and no one enters without a ticket", "priority": "Critical", "points": 5, "ac": ["Draw a closed boundary line around the entire zoo \u2014 no gaps", "Mark the main gate and one service gate on the boundary", "Label the wall height (e.g. 4m) somewhere on it"]}, {"id": "US-02", "epic": "E1", "title": "Lion zone", "asA": "big cat keeper", "iWant": "a lion enclosure drawn with a moat and viewing glass", "soThat": "visitors can see lions safely", "priority": "Critical", "points": 8, "ac": ["Draw the lion zone with a moat line all around it", "Draw 2 lions inside", "Draw the visitor viewing glass on one side", "Draw a keeper door on the back side"]}, {"id": "US-03", "epic": "E1", "title": "Tiger zone", "asA": "big cat keeper", "iWant": "a tiger zone with tall grass and a pond", "soThat": "tigers behave naturally", "priority": "High", "points": 5, "ac": ["Draw the tiger zone with a fence line", "Draw 2 tigers, a pond and grass patches", "Mark distance from visitor path (min 3m)"]}, {"id": "US-04", "epic": "E1", "title": "Elephant zone with mud pond", "asA": "elephant keeper", "iWant": "a big open elephant area with a mud pond", "soThat": "elephants can bathe and roam", "priority": "High", "points": 8, "ac": ["Draw the largest enclosure on the map", "Draw 3 elephants, a mud pond and 2 trees", "Draw the feeding platform where keepers stand"]}, {"id": "US-05", "epic": "E1", "title": "Giraffe & zebra savanna", "asA": "keeper", "iWant": "an open savanna shared by giraffes and zebras", "soThat": "visitors see a mixed-species zone", "priority": "Medium", "points": 5, "ac": ["Draw one open zone with both giraffes and zebras", "Draw at least 2 tall trees for giraffe browsing", "Draw a raised visitor deck at giraffe head height"]}, {"id": "US-06", "epic": "E1", "title": "Monkey island", "asA": "primate keeper", "iWant": "a monkey island surrounded by water", "soThat": "monkeys stay in without a cage", "priority": "Medium", "points": 5, "ac": ["Draw an island with water all around it", "Draw climbing ropes and 4 monkeys", "Draw the bridge keepers use to cross"]}, {"id": "US-07", "epic": "E1", "title": "Lizard & reptile park", "asA": "reptile keeper", "iWant": "a reptile park with separate glass tanks", "soThat": "each reptile gets its own space", "priority": "High", "points": 5, "ac": ["Draw the reptile park building outline", "Draw at least 4 separate tanks inside, each labelled with a species", "Draw a heat lamp symbol on each tank", "Draw a one-way visitor route through it"]}, {"id": "US-08", "epic": "E1", "title": "Bear zone", "asA": "keeper", "iWant": "a bear zone with rocks and a waterfall", "soThat": "bears have a natural habitat", "priority": "Low", "points": 5, "ac": ["Draw the bear zone with rocks, a cave and a waterfall", "Draw 2 bears", "Draw the double-gate keeper airlock"]}, {"id": "US-09", "epic": "E1", "title": "Deer & rabbit petting area", "asA": "keeper", "iWant": "a petting area visitors can walk into", "soThat": "children can touch friendly animals", "priority": "Medium", "points": 3, "ac": ["Draw a fenced petting area with a gate", "Draw deer and rabbits inside", "Draw a handwash point at the exit"]}, {"id": "US-10", "epic": "E2", "title": "Aqua park with shark tunnel", "asA": "aquarium curator", "iWant": "an aqua park with a walk-through tunnel", "soThat": "visitors walk under the water", "priority": "High", "points": 13, "ac": ["Draw the aqua park building", "Draw a big tank with a tunnel line running through it", "Draw sharks, turtles and fish inside the tank", "Draw the entry and exit doors of the tunnel"]}, {"id": "US-11", "epic": "E2", "title": "Penguin pool", "asA": "bird keeper", "iWant": "a cold penguin pool with a rock beach", "soThat": "penguins can swim and rest", "priority": "High", "points": 5, "ac": ["Draw the pool with a rock beach on one side", "Draw at least 5 penguins", "Draw the chiller machine next to the pool", "Draw the visitor viewing window"]}, {"id": "US-12", "epic": "E2", "title": "Dolphin show pool", "asA": "events lead", "iWant": "a dolphin pool with visitor seating", "soThat": "we can run a daily show", "priority": "Medium", "points": 8, "ac": ["Draw the big pool", "Draw curved seating for at least 100 people", "Draw 2 dolphins and the trainer platform"]}, {"id": "US-13", "epic": "E2", "title": "Walk-through aviary", "asA": "bird curator", "iWant": "a netted aviary visitors walk inside", "soThat": "birds fly freely around visitors", "priority": "Medium", "points": 5, "ac": ["Draw the aviary with a net line over the top", "Draw a double-door entry (two doors, not one)", "Draw at least 5 birds and 3 trees inside"]}, {"id": "US-14", "epic": "E2", "title": "Flamingo lake", "asA": "bird keeper", "iWant": "a shallow lake for flamingos", "soThat": "flamingos have a natural wading area", "priority": "Low", "points": 3, "ac": ["Draw a shallow lake with a low fence", "Draw at least 6 flamingos", "Mark the water depth on the drawing"]}, {"id": "US-15", "epic": "E2", "title": "Butterfly garden", "asA": "garden lead", "iWant": "a glass butterfly house with flowers", "soThat": "visitors walk among butterflies", "priority": "Low", "points": 3, "ac": ["Draw the glass house outline", "Draw flower beds and butterflies inside", "Draw the air-curtain door so butterflies do not escape"]}, {"id": "US-16", "epic": "E3", "title": "Main entrance and ticket counters", "asA": "gate manager", "iWant": "a drawn entrance with ticket counters and gates", "soThat": "visitors enter in an orderly way", "priority": "Critical", "points": 5, "ac": ["Draw the main entrance building", "Draw at least 3 ticket counters and 3 entry gates", "Draw the queue line and a separate exit gate", "Draw an accessible step-free lane"]}, {"id": "US-17", "epic": "E3", "title": "Main visitor path", "asA": "zoo planner", "iWant": "one main path connecting every zone", "soThat": "no visitor gets lost or reaches a dead end", "priority": "Critical", "points": 8, "ac": ["Draw a single continuous path from entrance back to exit", "Path must touch every animal zone on the map", "No dead ends anywhere on the path"]}, {"id": "US-18", "epic": "E3", "title": "Toy train route", "asA": "operations manager", "iWant": "a toy train with a track and stations", "soThat": "visitors can cross the zoo without walking", "priority": "High", "points": 8, "ac": ["Draw the full train track loop on the map", "Draw at least 4 stations with names", "Draw the train itself", "Track must not cross any walking path at the same level"]}, {"id": "US-19", "epic": "E3", "title": "Wayfinding signboards", "asA": "visitor", "iWant": "direction signs drawn at every junction", "soThat": "I can find animals without getting lost", "priority": "High", "points": 5, "ac": ["Draw a sign symbol at every path junction on the map", "Each sign must list at least 3 destinations with arrows", "Draw one big 'You are here' map board near the entrance"]}, {"id": "US-20", "epic": "E3", "title": "Parking area", "asA": "facilities lead", "iWant": "a car and bus park outside the boundary", "soThat": "visitors can park before entering", "priority": "Medium", "points": 5, "ac": ["Draw the parking area outside the boundary wall", "Mark separate car, bus and two-wheeler sections", "Draw accessible bays nearest the gate", "Draw the walking route from parking to the main gate"]}, {"id": "US-21", "epic": "E3", "title": "Golf cart route for staff", "asA": "operations manager", "iWant": "a service route for carts and vehicles", "soThat": "staff and feed can reach every zone", "priority": "Medium", "points": 5, "ac": ["Draw a service road reaching the back of every enclosure", "Service road must connect to the service gate, not the main gate", "Draw at least 2 golf carts"]}, {"id": "US-22", "epic": "E3", "title": "Wheelchair and pram route", "asA": "visitor with reduced mobility", "iWant": "a step-free route across the whole zoo", "soThat": "I can reach every zone", "priority": "High", "points": 3, "ac": ["Mark the step-free route in a different colour on the map", "Draw ramps wherever there is a level change", "Draw a wheelchair and pram hire point at the entrance"]}, {"id": "US-23", "epic": "E3", "title": "Rest benches and shade", "asA": "visitor", "iWant": "benches and shade along the path", "soThat": "I can rest while walking around", "priority": "Low", "points": 3, "ac": ["Draw a bench at least every 200m along the main path", "Draw shade trees or canopies over half the benches"]}, {"id": "US-24", "epic": "E4", "title": "Main restaurant", "asA": "food manager", "iWant": "a restaurant drawn near the centre", "soThat": "visitors can sit and eat a full meal", "priority": "High", "points": 5, "ac": ["Draw the restaurant building with a kitchen area", "Draw at least 15 tables", "Mark a veg and a non-veg counter", "Draw the waste bins and the service door"]}, {"id": "US-25", "epic": "E4", "title": "Food kiosks along the path", "asA": "food manager", "iWant": "small snack kiosks spread across the zoo", "soThat": "visitors can grab food anywhere", "priority": "Medium", "points": 3, "ac": ["Draw at least 3 kiosks in different parts of the map", "Each kiosk must be within 200m of a bin and a bench"]}, {"id": "US-26", "epic": "E4", "title": "Gift shop", "asA": "retail manager", "iWant": "a gift shop near the exit", "soThat": "visitors buy souvenirs on the way out", "priority": "Medium", "points": 3, "ac": ["Draw the gift shop on the exit route, not the entry route", "Draw shelves and a billing counter", "Draw the stockroom door"]}, {"id": "US-27", "epic": "E4", "title": "Toilet blocks", "asA": "facilities lead", "iWant": "toilet blocks spread across the zoo", "soThat": "visitors never have to walk far", "priority": "Critical", "points": 5, "ac": ["Draw at least 4 toilet blocks spread across the map", "Each block must have male, female and accessible cubicles marked", "Draw a baby-change symbol in at least 2 blocks", "No point on the main path more than 400m from a toilet"]}, {"id": "US-28", "epic": "E4", "title": "Water centre / drinking points", "asA": "facilities lead", "iWant": "free drinking water points", "soThat": "visitors stay hydrated in summer", "priority": "High", "points": 3, "ac": ["Draw at least 5 water points along the main path", "Draw the water tank and the pipe route feeding them", "Mark one as chilled"]}, {"id": "US-29", "epic": "E4", "title": "Picnic lawn", "asA": "facilities lead", "iWant": "an open lawn where families can sit", "soThat": "visitors can bring their own food", "priority": "Low", "points": 3, "ac": ["Draw a lawn with at least 10 picnic tables", "Draw shade trees over part of it", "Draw bins at the edges"]}, {"id": "US-30", "epic": "E4", "title": "Baby care and feeding room", "asA": "parent", "iWant": "a private baby care room", "soThat": "I can feed and change my baby comfortably", "priority": "Medium", "points": 3, "ac": ["Draw the baby care room near the entrance", "Draw a changing table, a chair and a sink inside", "Mark it on the visitor map"]}, {"id": "US-31", "epic": "E5", "title": "Safety box points", "asA": "safety officer", "iWant": "emergency safety boxes across the zoo", "soThat": "help is reachable from anywhere", "priority": "Critical", "points": 5, "ac": ["Draw at least 6 safety boxes on the map", "Each box must show: alarm button, first aid kit, fire extinguisher", "No point on the main path more than 150m from a safety box"]}, {"id": "US-32", "epic": "E5", "title": "Medical centre", "asA": "zoo doctor", "iWant": "a medical centre for visitors", "soThat": "injuries are treated on site", "priority": "Critical", "points": 8, "ac": ["Draw the medical centre building", "Draw a treatment room, a waiting area and an ambulance bay", "Draw the ambulance route from the bay to the service gate", "Mark it on the visitor map with a red cross"]}, {"id": "US-33", "epic": "E5", "title": "Animal escape assembly points", "asA": "safety officer", "iWant": "marked assembly points and lockdown rooms", "soThat": "visitors are safe if an animal escapes", "priority": "Critical", "points": 8, "ac": ["Draw at least 3 assembly points on the map", "Draw a lockdown room in each zone (solid walls, a door that locks)", "Draw the escape route arrows from each zone to the nearest assembly point"]}, {"id": "US-34", "epic": "E5", "title": "Fire safety layout", "asA": "safety officer", "iWant": "fire equipment and evacuation routes", "soThat": "the zoo meets fire rules", "priority": "High", "points": 5, "ac": ["Draw fire extinguisher symbols in every building", "Draw hydrants along the service road", "Draw the evacuation route arrows to the main gate", "Draw the fire assembly point in the parking area"]}, {"id": "US-35", "epic": "E5", "title": "CCTV camera layout", "asA": "security lead", "iWant": "cameras covering the whole zoo", "soThat": "incidents can be reviewed", "priority": "High", "points": 5, "ac": ["Draw camera symbols with a cone showing what each one sees", "No blind spot longer than 15m on the main path", "Draw the control room and mark who sits there"]}, {"id": "US-36", "epic": "E5", "title": "Lost child point", "asA": "safety officer", "iWant": "a lost child desk near the entrance", "soThat": "children are reunited fast", "priority": "High", "points": 3, "ac": ["Draw the lost child desk near the main gate", "Draw the wristband counter at entry", "Draw the announcement speaker positions across the zoo"]}, {"id": "US-37", "epic": "E5", "title": "Barrier and fence check route", "asA": "safety officer", "iWant": "a marked inspection route along every barrier", "soThat": "containment failures are caught early", "priority": "Medium", "points": 3, "ac": ["Draw the inspection route touching every enclosure fence", "Mark the weekly check points with numbers"]}, {"id": "US-38", "epic": "E6", "title": "Animal kitchen", "asA": "nutritionist", "iWant": "a central animal food kitchen", "soThat": "every animal is fed the right diet", "priority": "High", "points": 5, "ac": ["Draw the animal kitchen in the back-of-house area", "Draw a cold store, a dry store and a prep table", "Draw the feed delivery route from the kitchen to every enclosure"]}, {"id": "US-39", "epic": "E6", "title": "Veterinary hospital", "asA": "veterinarian", "iWant": "an animal hospital with a surgery room", "soThat": "sick animals are treated on site", "priority": "Critical", "points": 8, "ac": ["Draw the vet hospital away from the visitor path", "Draw an operation theatre, an X-ray room and recovery pens", "Draw the vehicle access for moving large animals", "Draw the connecting route to the quarantine block"]}, {"id": "US-40", "epic": "E6", "title": "Quarantine block", "asA": "veterinarian", "iWant": "an isolated block for new animals", "soThat": "new arrivals do not spread disease", "priority": "Critical", "points": 5, "ac": ["Draw the quarantine block separated from all other enclosures", "No shared wall or shared drain with any animal zone", "Draw the separate keeper entrance and PPE room"]}, {"id": "US-41", "epic": "E6", "title": "Keeper rooms and staff area", "asA": "operations manager", "iWant": "staff rooms behind the scenes", "soThat": "keepers have a base in each zone", "priority": "Medium", "points": 3, "ac": ["Draw a keeper room near each major zone", "Draw the staff canteen and locker room in back-of-house", "Mark these as staff-only on the map"]}, {"id": "US-42", "epic": "E6", "title": "Waste and dung handling", "asA": "facilities lead", "iWant": "a waste yard and collection route", "soThat": "the zoo stays clean", "priority": "Medium", "points": 3, "ac": ["Draw the waste yard near the service gate", "Draw separate wet and dry waste areas", "Draw the collection route from all zones to the yard"]}, {"id": "US-43", "epic": "E6", "title": "Water tank and drainage", "asA": "facilities lead", "iWant": "a water tank and drainage plan", "soThat": "pools and toilets always have water", "priority": "High", "points": 5, "ac": ["Draw the main water tank and the pipe lines to every pool and toilet", "Draw the drainage flow arrows away from all enclosures", "Mark the pump room"]}, {"id": "US-44", "epic": "E6", "title": "Nursery for baby animals", "asA": "curator", "iWant": "a nursery for newborn animals", "soThat": "babies are cared for separately", "priority": "Low", "points": 3, "ac": ["Draw the nursery near the vet hospital", "Draw small pens and an incubator", "Draw a small viewing window for visitors"]}, {"id": "US-45", "epic": "E7", "title": "Amphitheatre for keeper talks", "asA": "education lead", "iWant": "an open amphitheatre", "soThat": "keeper talks and shows have a venue", "priority": "Medium", "points": 5, "ac": ["Draw the amphitheatre with a stage and stepped seating", "Seat at least 150 people", "Draw the route from the main path to it"]}, {"id": "US-46", "epic": "E7", "title": "Information boards at every zone", "asA": "education lead", "iWant": "a species board at every enclosure", "soThat": "visitors learn about each animal", "priority": "High", "points": 3, "ac": ["Draw an info board symbol at every animal zone", "Each board shows: animal name, where it lives, endangered or not", "Draw at least 2 boards at child height"]}, {"id": "US-47", "epic": "E7", "title": "Kids play area", "asA": "parent", "iWant": "a playground for children", "soThat": "kids have somewhere to run", "priority": "Medium", "points": 3, "ac": ["Draw the play area with a slide, swings and a soft floor", "Draw a fence with one gate", "Draw parent seating around it"]}, {"id": "US-48", "epic": "E7", "title": "Night zoo lighting", "asA": "events lead", "iWant": "lighting for an evening event", "soThat": "the zoo can open after dark", "priority": "Low", "points": 5, "ac": ["Draw lights along the entire main path", "Draw the lit route for the night event", "Mark which zones stay dark for nocturnal animals"]}, {"id": "US-49", "epic": "E7", "title": "School group entrance and hall", "asA": "education lead", "iWant": "a separate school entry and a hall", "soThat": "school groups do not block the main gate", "priority": "Medium", "points": 5, "ac": ["Draw a separate school group gate on the boundary", "Draw an education hall with seating for 60", "Draw the school route from that gate to the hall"]}, {"id": "US-50", "epic": "E7", "title": "Souvenir photo and adoption desk", "asA": "fundraising lead", "iWant": "an adoption and photo desk", "soThat": "supporters fund animal care", "priority": "Low", "points": 3, "ac": ["Draw the desk near the exit", "Draw the adoption board showing which animals can be adopted"]}]};
+/* ================= SYNC WITH zoo-data.json ================= */
+const SYNC = {
+  on: false,          // server detected?
+  dirty: false,       // local changes not yet pushed
+  lastSeen: '',       // server 'updated' stamp we last applied
+  pushing: false,
+  who: ''
+};
+
+function syncBadge(text, cls){
+  const el = document.getElementById('syncState');
+  if(!el) return;
+  el.textContent = text;
+  el.className = 'syncbadge ' + (cls||'');
+}
+
+/* ---- collect / apply every piece of session state ---- */
+function collectNotes(){
+  const o = {};
+  document.querySelectorAll('[data-note]').forEach(el => { o[el.dataset.note] = el.value; });
+  return o;
+}
+function applyNotes(n){
+  if(!n) return;
+  document.querySelectorAll('[data-note]').forEach(el => {
+    if(document.activeElement === el) return;       // never yank text out from under a typist
+    if(n[el.dataset.note] !== undefined) el.value = n[el.dataset.note];
+  });
+}
+
+function markDirty(){ SYNC.dirty = true; if(SYNC.on) syncBadge('Saving…','busy'); }
+
+/* ---- push ---- */
+async function push(){
+  if(!SYNC.on || !SYNC.dirty || SYNC.pushing) return;
+  SYNC.pushing = true; SYNC.dirty = false;
+  try{
+    const r = await fetch('/api/state', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ kanban:K, notes:collectNotes(), savedBy: SYNC.who })
+    });
+    const d = await r.json();
+    SYNC.lastSeen = d.updated;
+    syncBadge('Saved ' + d.updated.slice(11,16), 'ok');
+  }catch(e){
+    SYNC.dirty = true;
+    syncBadge('Save failed — retrying', 'bad');
+  }finally{ SYNC.pushing = false; }
+}
+
+/* ---- pull ---- */
+async function pull(){
+  try{
+    const r = await fetch('/api/state', {cache:'no-store'});
+    if(!r.ok) throw 0;
+    const d = await r.json();
+    if(!SYNC.on){
+      SYNC.on = true;
+      document.getElementById('syncBar').hidden = false;
+    }
+    // only apply if the server is newer than what we have and we aren't mid-edit
+    if(d.updated && d.updated !== SYNC.lastSeen && !SYNC.dirty){
+      SYNC.lastSeen = d.updated;
+      K = d.kanban || {};
+      applyNotes(d.notes);
+      if(typeof paintBoard === 'function') paintBoard();
+      syncBadge('Synced ' + d.updated.slice(11,16), 'ok');
+    }
+    return true;
+  }catch(e){
+    if(SYNC.on){ syncBadge('Server offline', 'bad'); }
+    return false;
+  }
+}
+
+/* ---- boot ---- */
+async function initSync(){
+  const ok = await pull();
+  if(!ok){
+    // no server: page still works, just no shared file
+    const b = document.getElementById('syncBar');
+    if(b){ b.hidden = false; }
+    syncBadge('Not connected — run server.py to save to zoo-data.json', 'bad');
+    return;
+  }
+  setInterval(push, 2000);   // push local changes
+  setInterval(pull, 4000);   // pick up other people's changes
+  window.addEventListener('beforeunload', () => {
+    if(SYNC.dirty && navigator.sendBeacon){
+      navigator.sendBeacon('/api/state', new Blob(
+        [JSON.stringify({kanban:K, notes:collectNotes(), savedBy:SYNC.who})],
+        {type:'application/json'}));
+    }
+  });
+}
+
+/* ---- manual file export / import (works with or without the server) ---- */
+function exportState(){
+  const blob = new Blob([JSON.stringify({kanban:K, notes:collectNotes(),
+    updated:new Date().toISOString().slice(0,19)}, null, 1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zoo-data.json';
+  a.click();
+}
+function importState(file){
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      const d = JSON.parse(fr.result);
+      K = d.kanban || {};
+      applyNotes(d.notes);
+      if(typeof paintBoard === 'function') paintBoard();
+      markDirty();
+      syncBadge('Loaded from file', 'ok');
+    }catch(e){ alert('That file could not be read as zoo-data.json'); }
+  };
+  fr.readAsText(file);
+}
+
+/* ================= KANBAN ================= */
+const COLS=[
+ {id:'backlog',n:'Product Backlog',d:'Everything not yet pulled'},
+ {id:'sprint',n:'Sprint Backlog',d:'Committed. Frozen at planning.'},
+ {id:'prog',n:'In Progress',d:'Being drawn right now'},
+ {id:'review',n:'Review',d:'Drawn — waiting for PO'},
+ {id:'done',n:'Done',d:'PO accepted every criterion'}
+];
+let K = {};
+function st(id){ return K[id] || (K[id]={col:'backlog',owner:'',sprint:'',verdict:''}); }
+function save(){ if(typeof markDirty==='function') markDirty(); }
+
+const TEAM=['PO','Agile Lead','Dev 1','Dev 2','Dev 3'];
+let kFilter={sprint:'',epic:'',owner:''};
+
+function buildKanbanShell(){
+  const root=document.getElementById('kanban');
+  root.innerHTML=`
+   <div class="filters">
+     <select id="kSprint"><option value="">All sprints</option><option value="1">Sprint 1</option><option value="2">Sprint 2</option></select>
+     <select id="kEpic"><option value="">All epics</option>${ZOO.epics.map(e=>`<option value="${e.id}">${e.id} — ${e.name}</option>`).join('')}</select>
+     <select id="kOwner"><option value="">All owners</option>${TEAM.map(t=>`<option>${t}</option>`).join('')}<option value="__none">Unassigned</option></select>
+     <button class="tbtn2" id="kReset">Reset board</button>
+     <button class="printbtn" onclick="window.print()">Print board</button>
+     <span class="mono" id="kStats" style="color:var(--mute);font-size:12.5px"></span>
+   </div>
+   <div class="board" id="board">${COLS.map(c=>`
+     <div class="col" data-col="${c.id}">
+       <div class="colhead"><span>${c.n}</span><span class="cnt mono" id="cnt-${c.id}">0</span></div>
+       <div class="colsub">${c.d}</div>
+       <div class="drop" data-col="${c.id}"></div>
+     </div>`).join('')}</div>`;
+
+  document.getElementById('kSprint').onchange=e=>{kFilter.sprint=e.target.value;paintBoard();};
+  document.getElementById('kEpic').onchange=e=>{kFilter.epic=e.target.value;paintBoard();};
+  document.getElementById('kOwner').onchange=e=>{kFilter.owner=e.target.value;paintBoard();};
+  document.getElementById('kReset').onclick=()=>{
+    if(confirm('Clear the whole board? All owners, sprints and card positions will be lost.')){K={};save();paintBoard();}
+  };
+
+  root.querySelectorAll('.drop').forEach(d=>{
+    d.addEventListener('dragover',e=>{e.preventDefault();d.classList.add('over');});
+    d.addEventListener('dragleave',()=>d.classList.remove('over'));
+    d.addEventListener('drop',e=>{
+      e.preventDefault(); d.classList.remove('over');
+      const id=e.dataTransfer.getData('text/plain'); if(!id)return;
+      const s=st(id); s.col=d.dataset.col;
+      if(s.col==='sprint'&&!s.sprint) s.sprint=kFilter.sprint||'1';
+      if(s.col==='done'&&!s.verdict) s.verdict='Accepted';
+      if(s.col!=='done') s.verdict='';
+      save(); paintBoard();
+    });
+  });
+}
+
+function moveCard(id,dir){
+  const s=st(id); const i=COLS.findIndex(c=>c.id===s.col);
+  const j=Math.max(0,Math.min(COLS.length-1,i+dir));
+  s.col=COLS[j].id;
+  if(s.col==='sprint'&&!s.sprint) s.sprint='1';
+  if(s.col==='done'&&!s.verdict) s.verdict='Accepted';
+  if(s.col!=='done') s.verdict='';
+  save(); paintBoard();
+}
+function setField(id,f,v){ st(id)[f]=v; save(); paintBoard(); }
+
+function paintBoard(){
+  const byId=Object.fromEntries(ZOO.stories.map(x=>[x.id,x]));
+  COLS.forEach(c=>{
+    const wrap=document.querySelector(`.drop[data-col="${c.id}"]`);
+    const items=ZOO.stories.filter(x=>{
+      const s=st(x.id);
+      if(s.col!==c.id) return false;
+      if(kFilter.epic && x.epic!==kFilter.epic) return false;
+      if(kFilter.sprint && s.sprint!==kFilter.sprint) return false;
+      if(kFilter.owner==='__none' && s.owner) return false;
+      if(kFilter.owner && kFilter.owner!=='__none' && s.owner!==kFilter.owner) return false;
+      return true;
+    });
+    document.getElementById('cnt-'+c.id).textContent=items.length+' · '+items.reduce((t,x)=>t+x.points,0)+'p';
+    wrap.innerHTML=items.map(x=>card(x)).join('') || `<div class="empty">Drag cards here</div>`;
+  });
+
+  // stats
+  const all=ZOO.stories.map(x=>({x,s:st(x.id)}));
+  const done=all.filter(o=>o.s.col==='done');
+  const acc=done.filter(o=>o.s.verdict==='Accepted');
+  const crit=ZOO.stories.filter(x=>x.priority==='Critical');
+  const critDone=crit.filter(x=>st(x.id).col==='done'&&st(x.id).verdict==='Accepted').length;
+  const pts=acc.reduce((t,o)=>t+o.x.points,0)+done.filter(o=>o.s.verdict==='Partial').reduce((t,o)=>t+o.x.points/2,0);
+  document.getElementById('kStats').textContent=`${pts} pts earned · Critical ${critDone}/${crit.length}${critDone===crit.length?' 🎉 zoo opens':''}`;
+
+  // rebind drag
+  document.querySelectorAll('.kcard').forEach(el=>{
+    el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.id);el.classList.add('dragging');});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+  });
+}
+
+function card(x){
+  const s=st(x.id), ep=EC[x.epic];
+  const inSprint=s.col!=='backlog';
+  return `<div class="kcard" draggable="true" data-id="${x.id}" style="border-left:4px solid ${ep.color}">
+    <div class="krow">
+      <span class="idc" style="font-size:11.5px">${x.id}</span>
+      <span class="pr ${x.priority}" style="font-size:9.5px">${x.priority.toUpperCase()}</span>
+      <span class="mono" style="font-size:11px;color:var(--mute);margin-left:auto">${x.points}p</span>
+    </div>
+    <div class="ktitle">${x.title}</div>
+    <details><summary>${x.ac.length} criteria</summary><ul class="ac">${x.ac.map(a=>`<li>${a}</li>`).join('')}</ul></details>
+    <div class="kmeta">
+      <select onchange="setField('${x.id}','owner',this.value)" title="Owner">
+        <option value="">— owner —</option>${TEAM.map(t=>`<option ${s.owner===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <select onchange="setField('${x.id}','sprint',this.value)" title="Sprint">
+        <option value="">— sprint —</option><option value="1" ${s.sprint==='1'?'selected':''}>S1</option><option value="2" ${s.sprint==='2'?'selected':''}>S2</option>
+      </select>
+      ${s.col==='done'?`<select onchange="setField('${x.id}','verdict',this.value)" title="PO verdict" class="verdict ${s.verdict}">
+        <option ${s.verdict==='Accepted'?'selected':''}>Accepted</option>
+        <option ${s.verdict==='Partial'?'selected':''}>Partial</option>
+        <option ${s.verdict==='Rejected'?'selected':''}>Rejected</option></select>`:''}
+    </div>
+    <div class="kmove">
+      <button onclick="moveCard('${x.id}',-1)" title="Move left">←</button>
+      <button onclick="moveCard('${x.id}',1)" title="Move right">→</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- nav ---------- */
+const TABS=[["s-brief","The brief"],["s-roles","Team & roles"],["s-agenda","Run of show"],["s-backlog","Backlog (50)"],["s-kanban","Kanban board"],["s-draw","Drawing kit"],["s-scoring","Review & retro"],["s-facilitator","Facilitator"],["s-setup","Setup & data"]];
+const nav=document.getElementById('nav');
+TABS.forEach(([id,label],i)=>{
+  const b=document.createElement('button');
+  b.textContent=label; b.setAttribute('aria-selected', i===0);
+  b.onclick=()=>{
+    TABS.forEach(([sid])=>document.getElementById(sid).hidden=true);
+    [...nav.children].forEach(x=>x.setAttribute('aria-selected',false));
+    document.getElementById(id).hidden=false; b.setAttribute('aria-selected',true);
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  nav.appendChild(b);
+});
+
+/* ---------- roles ---------- */
+const ROLES=[
+ {cls:'po',n:'Product Owner',c:1,d:'Owns the why. The only person who can change priority or accept a story.',t:[
+  'Orders the backlog before planning and defends that order',
+  'Answers every "does this count as done?" question',
+  'Runs the sprint review and scores each card: accepted, partial, rejected',
+  'Says no to mid-sprint scope changes and sends them to the parking lot']},
+ {cls:'al',n:'Agile Lead / Scrum Master',c:1,d:'Owns the how. Protects the process and the clock.',t:[
+  'Timeboxes every ceremony using the timer on this page',
+  'Removes blockers and keeps the board honest',
+  'Stops the PO from assigning tasks and the team from skipping ceremonies',
+  'Facilitates the retro and holds the team to exactly two improvements']},
+ {cls:'dev',n:'Developer ×3',c:3,d:'Owns the what. Draws the zoo.',t:[
+  'Estimates stories together and splits the map into regions during planning',
+  'Each developer owns at least one story per sprint, named on the card',
+  'Moves own cards across the board — nobody moves them for you',
+  'Demonstrates by pointing at the drawing, criterion by criterion, at review']},
+ {cls:'',n:'Role rotation',c:0,d:'Swap seats between sprints.',t:[
+  'Sprint 1 PO becomes a Developer in Sprint 2',
+  'Sprint 1 Agile Lead becomes PO in Sprint 2',
+  'One Sprint 1 Developer takes the Agile Lead seat',
+  'Everyone should feel at least one non-developer seat by the end']}
+];
+document.getElementById('roles').innerHTML=ROLES.map(r=>`
+ <div class="card roleCard ${r.cls}">
+  <h3>${r.n}${r.c>1?` <span class="mono" style="color:var(--mute);font-weight:500">×${r.c}</span>`:''}</h3>
+  <p style="margin:0;color:#4a5247">${r.d}</p>
+  <ul class="tight">${r.t.map(x=>`<li>${x}</li>`).join('')}</ul>
+ </div>`).join('');
+
+/* ---------- agenda ---------- */
+const PHASES=[
+ {s:1,n:'Sprint 1 · Sprint Planning',m:5,h:'PO explains priorities. Team pulls stories into the Sprint Backlog and freezes scope.'},
+ {s:1,n:'Sprint 1 · Development',m:30,h:'Draw on the shared zoo map. Cards move only by their owner. No scope changes.'},
+ {s:1,n:'Sprint 1 · Sprint Review',m:5,h:'PO points at the map for every acceptance criterion. Accepted, partial, or rejected.'},
+ {s:1,n:'Sprint 1 · Retrospective',m:5,h:'Start, stop, continue. Every person contributes at least one item.'},
+ {s:1,n:'Improvement planning',m:10,h:'Pick exactly two changes for Sprint 2, each with a named owner. Recalculate velocity.'},
+ {s:2,n:'Sprint 2 · Sprint Planning',m:5,h:'Rotate roles. Commit using Sprint 1 actual velocity, not optimism.'},
+ {s:2,n:'Sprint 2 · Development',m:30,h:'Draw. Apply the two improvements visibly.'},
+ {s:2,n:'Sprint 2 · Sprint Review',m:5,h:'Score again. Check whether all 8 Critical stories are accepted — the zoo opens or it does not.'},
+ {s:2,n:'Sprint 2 · Retrospective',m:5,h:'Compare the two sprints. What actually changed, and what was just talk?'}
+];
+const ag=document.getElementById('agenda');
+let last=0;
+PHASES.forEach((p,i)=>{
+  if(p.s!==last){const h=document.createElement('h3');h.textContent=`Sprint ${p.s}`;h.style.margin='18px 0 8px';ag.appendChild(h);last=p.s;}
+  const d=document.createElement('div');
+  d.className='phase'; d.dataset.i=i;
+  d.innerHTML=`<div class="dur">${p.m}′</div><div><strong>${p.n.split('· ')[1]||p.n}</strong><small>${p.h}</small></div>`;
+  d.onclick=()=>load(i);
+  ag.appendChild(d);
+});
+
+/* ---------- backlog ---------- */
+const EC=Object.fromEntries(ZOO.epics.map(e=>[e.id,e]));
+const PORD={Critical:0,High:1,Medium:2,Low:3};
+const fEpic=document.getElementById('fEpic');
+fEpic.innerHTML='<option value="">All epics</option>'+ZOO.epics.map(e=>`<option value="${e.id}">${e.id} — ${e.name}</option>`).join('');
+function render(){
+  const e=fEpic.value,p=document.getElementById('fPri').value,
+        q=document.getElementById('fQ').value.toLowerCase(),s=document.getElementById('fSort').value;
+  let list=ZOO.stories.filter(x=>(!e||x.epic===e)&&(!p||x.priority===p)&&
+    (!q||(x.title+x.asA+x.iWant+x.soThat+x.ac.join(' ')).toLowerCase().includes(q)));
+  if(s==='pri')list=[...list].sort((a,b)=>PORD[a.priority]-PORD[b.priority]||a.id.localeCompare(b.id));
+  if(s==='pts')list=[...list].sort((a,b)=>b.points-a.points);
+  document.getElementById('count').textContent=`${list.length} of 50 · ${list.reduce((t,x)=>t+x.points,0)} pts`;
+  document.getElementById('rows').innerHTML=list.map(x=>{
+    const ep=EC[x.epic];
+    return `<tr>
+      <td class="idc">${x.id}</td>
+      <td><span class="ep" style="background:${ep.color}">${x.epic}</span><div style="font-size:11px;color:var(--mute);margin-top:4px">${ep.name}</div></td>
+      <td><strong>${x.title}</strong>
+        <div style="color:#4a5247;margin-top:4px;font-size:13px">As a <strong>${x.asA}</strong>, I want <strong>${x.iWant}</strong>, so that ${x.soThat}.</div>
+      </td>
+      <td>
+        <select class="acsel" onchange="showAC('${x.id}',this.value)">
+          <option value="">▾ Acceptance criteria (${x.ac.length}) — must draw all</option>
+          ${x.ac.map((a,i)=>`<option value="${i}">${i+1}. ${a.replace(/"/g,'&quot;')}</option>`).join('')}
+        </select>
+        <ul class="ac aclist" id="ac-${x.id}">${x.ac.map((a,i)=>`<li id="ac-${x.id}-${i}">${a}</li>`).join('')}</ul>
+      </td>
+      <td><span class="pr ${x.priority}">${x.priority.toUpperCase()}</span></td>
+      <td class="idc">${x.points}</td></tr>`;
+  }).join('');
+}
+['fEpic','fPri','fSort','fQ'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+render();
+buildKanbanShell(); paintBoard();
+
+/* ---------- timer ---------- */
+let idx=0,left=PHASES[0].m*60,total=left,run=null;
+const clock=document.getElementById('clock'),prog=document.getElementById('prog');
+function paint(){
+  const m=Math.floor(Math.abs(left)/60),s=Math.abs(left)%60;
+  clock.textContent=(left<0?'-':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  clock.className=left<0?'over':(left<=60?'warn':'');
+  prog.style.width=Math.max(0,Math.min(100,(1-left/total)*100))+'%';
+  document.querySelectorAll('.phase').forEach(p=>p.classList.toggle('active',+p.dataset.i===idx));
+}
+function load(i){
+  idx=i; total=left=PHASES[i].m*60;
+  document.getElementById('phaseName').textContent=PHASES[i].n;
+  document.getElementById('phaseHint').textContent=PHASES[i].h;
+  stop(); paint();
+}
+function stop(){clearInterval(run);run=null;document.getElementById('btnStart').textContent='Start';}
+document.getElementById('btnStart').onclick=function(){
+  if(run){stop();return;}
+  this.textContent='Pause';
+  run=setInterval(()=>{left--;paint();if(left===0)try{new (window.AudioContext||window.webkitAudioContext)().resume()}catch(e){}},1000);
+};
+document.getElementById('btnReset').onclick=()=>load(idx);
+document.getElementById('btnNext').onclick=()=>load((idx+1)%PHASES.length);
+load(0);
+
+
+/* highlight the picked acceptance criterion */
+function showAC(id,i){
+  const ul=document.getElementById('ac-'+id);
+  ul.querySelectorAll('li').forEach(li=>li.classList.remove('hit'));
+  if(i==='')return;
+  const li=document.getElementById('ac-'+id+'-'+i);
+  if(li){li.classList.add('hit');li.scrollIntoView({block:'nearest'});}
+}
+
+
+/* notes fields feed the shared file */
+document.querySelectorAll('[data-note]').forEach(el=>{
+  el.addEventListener('input',()=>{ if(typeof markDirty==='function') markDirty(); });
+});
+const _who=document.getElementById('whoAmI');
+if(_who) _who.addEventListener('input',e=>{ SYNC.who=e.target.value; });
+
+initSync();
+</script>
+</body>
